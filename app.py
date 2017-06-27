@@ -202,5 +202,5 @@ def get_search():
 if __name__ == '__main__':
     db.create_all()
     app.secret_key = 'my_secret'
-
+    app.debug = True
     app.run(debug=True)
