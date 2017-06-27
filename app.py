@@ -3,17 +3,18 @@
 # Imports
 from flask import Flask, render_template, flash, redirect, url_for, request, session, logging
 from flask_sqlalchemy import SQLAlchemy
-from flask.ext.heroku import Heroku
 from sqlalchemy.exc import IntegrityError
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
+import os
 
 app = Flask(__name__)
-heroku = Heroku(app)
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Config PostgreSQL
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/weatherapp_users'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///comments.db')
 
 # DB object
 db = SQLAlchemy(app)
@@ -199,5 +200,7 @@ def get_search():
     return render_template('includes/_search.html')
 
 if __name__ == '__main__':
+    db.create_all()
     app.secret_key = 'my_secret'
+
     app.run(debug=True)
