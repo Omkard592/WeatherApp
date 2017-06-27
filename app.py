@@ -3,15 +3,17 @@
 # Imports
 from flask import Flask, render_template, flash, redirect, url_for, request, session, logging
 from flask_sqlalchemy import SQLAlchemy
+from flask.ext.heroku import Heroku
 from sqlalchemy.exc import IntegrityError
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
 app = Flask(__name__)
+heroku = Heroku(app)
 
 # Config PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/weatherapp_users'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/weatherapp_users'
 
 # DB object
 db = SQLAlchemy(app)
