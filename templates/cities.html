@@ -8,4 +8,46 @@
     {% endfor %}
   </ul>
 
+
+
+<form action="" method="post" name="form_citydetails" id="form_citydetails" enctype="multipart/form-data" onsubmit="return false;">
+<p><b>Please enter</b> your city here to see it work. <input class="ff_elem" type="text" name="ff_nm_from[]" value="" id="f_elem_city"/>
+</form>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" type="text/javascript"></script>
+<link rel="stylesheet" href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.10.3/themes/flick/jquery-ui.css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
+
+<script type="text/javascript">
+
+jQuery(function ()
+{
+ jQuery("#f_elem_city").autocomplete({
+  source: function (request, response) {
+   jQuery.getJSON(
+    "http://gd.geobytes.com/AutoCompleteCity?callback=?&q="+request.term,
+    function (data) {
+     response(data);
+    }
+   );
+  },
+  minLength: 3,
+  select: function (event, ui) {
+   var selectedObj = ui.item;
+   jQuery("#f_elem_city").val(selectedObj.value);
+  getcitydetails(selectedObj.value);
+   return false;
+  },
+  open: function () {
+   jQuery(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+  },
+  close: function () {
+   jQuery(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+  }
+ });
+ jQuery("#f_elem_city").autocomplete("option", "delay", 100);
+});
+</script>
+
 {% endblock %}

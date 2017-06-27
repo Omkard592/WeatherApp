@@ -1,0 +1,51 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <ul class="list-group">
+    <li class="list-group-item">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{myuser.name}}</td>
+            <td>{{myuser.username}}</td>
+            <td>{{myuser.email}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </li>
+
+    <div class="panel-group">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <li class="list-group-item"><a data-toggle="collapse" href="#collapse1">My Cities</a><span class="badge">
+              {% if myuser.cities is none %}{{0}}
+              {% else%}{{myuser.cities|length}}{% endif %}</span>
+          </h4>
+        </div>
+        <div id="collapse1" class="panel-collapse collapse">
+          <ul class="list-group">
+            {% if myuser.cities is not none and myuser.cities|length > 0 %}
+              {% for city in myuser.cities %}
+                <li class="list-group-item">
+                  <form action="{{url_for('delete_city', dc=city)}}" method="post">
+                    {{city}}<input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="btn btn-danger btn-xs pull-right">
+                  </form>
+                </li>
+              {% endfor %}
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    </li>
+  </ul>
+{% endblock %}

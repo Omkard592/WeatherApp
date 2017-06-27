@@ -1,0 +1,64 @@
+
+{% block body %}
+{% if session.logged_in %}
+
+<div class="container">
+  <div class="row">
+    <nav class="col-sm-3">
+      <ul class="nav nav-pills">
+        <li><h4>Current city: {{myuser.curr_city}}<h4></li>
+        <li>
+          <div class="dropdown">
+          <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Change current city
+          <span class="caret"></span></button>
+          <a href="javascript:refresh_cities()"><span class="glyphicon glyphicon-refresh"></span></a>
+
+          <ul class="dropdown-menu">
+
+            {% if session.cities is not none %}
+              {% for city in session.cities %}
+              <form id="change_curr_city" action="{{url_for('change_curr_city', cc=city)}}" method="post">
+                <li>
+
+                  <input class="btn btn-default btn-block {% if city == myuser.curr_city %}active{% endif %}" type="submit" name="_method" value="{{city}}">
+
+
+
+
+                </li>
+                </form>
+              {% endfor %}
+            {% endif %}
+          </ul>
+          </div>
+        </li>
+        <li><br></li>
+        <li>
+
+
+
+<iframe width="80%" frameBorder="0" src="{{ url_for('get_search') }}"></iframe>
+
+
+
+
+
+
+
+
+        </li>
+      </ul>
+    </nav>
+
+
+
+  </div>
+</div>
+
+
+  {% endif %}
+
+
+
+
+{% endblock %}
