@@ -14,7 +14,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Config PostgreSQL
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/weatherapp_users'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///comments.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///user.db')
 
 # DB object
 db = SQLAlchemy(app)
