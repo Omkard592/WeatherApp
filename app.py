@@ -7,14 +7,16 @@ from sqlalchemy.exc import IntegrityError
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
+import requests
+import json
 import os
 
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Config PostgreSQL
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/weatherapp_users'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///user.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/weatherapp_users'
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///user.db')
 
 # DB object
 db = SQLAlchemy(app)
@@ -93,7 +95,6 @@ def register():
             flash('User already exists!', 'danger')
             return redirect(url_for('register'))
 
-
     return render_template('register.html', form=form)
 
 # Login
@@ -140,8 +141,39 @@ app.jinja_env.globals.update(getUser=getUser)
 @is_logged_in
 def dashboard():
     myUser = User.query.filter_by(username = session['username']).first()
-    if myUser.cities is not None:
+    # Current city is set and city list is not empty
+    if myUser.cities is not None and myUser.curr_city:
         myUser.cities = sorted(myUser.cities)
+        c_ele = [x.strip() for x in ''.join(myUser.curr_city).split(',')]
+        citydata = requests.get('http://api.wunderground.com/api/87ce814483be97e9/alerts/forecast/conditions/q/'+c_ele[1]+'/'+c_ele[0]+'.json')
+        myUser.xx = json.loads(citydata.text)
+        # Found weather details for that exact city
+        if 'current_observation' in myUser.xx:
+            myUser.alerts = myUser.xx["alerts"]
+            myUser.forecast = myUser.xx["forecast"]
+            myUser.xx = myUser.xx["current_observation"]
+
+        # Found multiple cities of the same name
+        else:
+            zmw = ""
+            # Extract country and then call the API again using the zmw field with unique values for every city
+            if 'results' in myUser.xx["response"]:
+                for r in myUser.xx["response"]["results"]:
+                    if(myUser.curr_city.find(r["country_name"]) != -1):
+                        zmw = r["zmw"]
+                citydata = requests.get('http://api.wunderground.com/api/87ce814483be97e9/alerts/forecast/conditions/q/zmw:'+zmw+'.json')
+                myUser.xx = json.loads(citydata.text)
+                # No details found for this city after using zmw field
+                if 'current_observation' not in myUser.xx:
+                    flash('No details found for this city', 'danger')
+                    return redirect(url_for('dashboard'))
+                myUser.alerts = myUser.xx["alerts"]
+                myUser.forecast = myUser.xx["forecast"]
+                myUser.xx = myUser.xx["current_observation"]
+            # No details exist for this city (Weather API is missing it's data)
+            else:
+                flash('No details found for this city', 'danger')
+                return redirect(url_for('dashboard'))
     return render_template('dashboard.html', myuser = myUser)
 
 # Change current city
@@ -160,10 +192,8 @@ def add_city():
     chngUser = User.query.filter_by(username = session['username']).first()
     newcity = request.form['hiddenlabel']
     session['cities'] = chngUser.cities
-    app.logger.info(session['cities'])
     if newcity != '':
         result = [newcity]
-        app.logger.info(chngUser.cities)
         if chngUser.cities is not None:
             if newcity not in chngUser.cities:
                 for c in chngUser.cities:
@@ -173,7 +203,6 @@ def add_city():
             chngUser.cities = result
         db.session.commit()
         session['cities'] = result
-        app.logger.info(session['cities'])
     return redirect(url_for('get_search'))
 
 # Delete a city
@@ -201,6 +230,5 @@ def get_search():
 
 if __name__ == '__main__':
     db.create_all()
-    app.secret_key = 'my_secret'
-    app.debug = True
+    app.secret_key = 'not_really_a_good_secret'
     app.run(debug=True)
